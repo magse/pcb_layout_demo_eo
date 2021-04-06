@@ -1,0 +1,3 @@
+[submodule "geometry2d"]
+	path = geometry2d
+	url = git@github.com:magse/geometry2d.git

@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Xcode
+build/
+DerivedData/
+pcb_layout_demo_eo.xcodeproj/project.xcworkspace/
+pcb_layout_demo_eo.xcodeproj/xcuserdata/magse.xcuserdatad/xcschemes/
