@@ -14,48 +14,25 @@ template<typename T> struct LED : public geometry2d::circle2<T> {
 		auto d=circle_t::distance(c);
 		d*=pwr*c.area()/circle_t::area();
 	}
+	T flaw_outside(circle_t& outeredge) {
+		return T(1)-intersection_relative_area(outeredge,*this);
+	}
+	T flaw_inside(circle_t& inneredge) {
+		return intersection_relative_area(inneredge,*this);
+	}
+	T flaw_bottom(real_t& Y) {
+		return posvalue(Y - (circle_t::y-circle_t::r));
+	}
+	T flaw_side(real_t& X) {
+		return posvalue(X - (circle_t::x-circle_t::r));
+	}
+	T flaw_overlapp(circle_t& othercomponent) {
+		return intersection_relative_area(othercomponent,*this);
+	}
 };
 
 
-template<typename T> T flaw_outside(circle2<T>& c) {
-	const T R=T(OUTSIDE_RADIUS);
-	auto d=c.p.length();
-	return outsidearea(c.r,R,d)/area(c.r);
-}
-
-template<typename T> T flaw_inside(circle2<T>& c) {
-	const T R=T(INSIDE_RADIUS);
-	auto d=c.p.length();
-	return insidearea(c.r,R,d)/area(c.r);
-}
-
-template<typename T> T flaw_border(circle2<T>& c) {
-	const T D=T(BORDER_DISTANCE);
-	T dx=0;
-	T dy=0;
-	T e=0;
-	if((c.p.y+c.r)<D) {
-		dy=c.p.y+c.r-D;
-		e+=gtoz(-dy)*c.r;
-	}
-	if((c.p.x+c.r)<D) {
-		dx=c.p.x+c.r-D;
-		e+=gtoz(-dx)*c.r;
-	}
-	return T(2)*e/c.area();
-}
-
-template<typename T> T flaw_comp(circle<T>& c) {
-	if(c.ref) {
-		auto d=c.rimdistance(*(c.ref));
-		if(d<c.r) d=0;
-		return d*T(2)/c.area();
-		//		return 0;
-	}
-	return 0;
-}
-
-template<typename T> int improve_comp(circle<T>& c) {
+template<typename T> int improve_comp(circle2<T>& c) {
 	if(c.ref) {
 		//		auto d=c.rimdistance(*(c.ref));
 		//		auto dx=c.p.x - c.ref->p.x;

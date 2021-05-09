@@ -15,6 +15,8 @@ template<typename T> T gtoz(const T x) {
 	return x;
 }
 
+template<typename T> T posvalue(const T x) {return x>T(0) ? x : T(0);}
+
 template<typename T> T div(const T a,const T b) {
 	assert(!isnan(b)&&!isinf(b));
 	assert(!isnan(a)&&!isinf(a));
@@ -87,9 +89,9 @@ template<typename T> T insidearea(const T r,const T R,const T d) {
 	return unionarea(r,R,d);
 }
 
-template<typename T> T outside_relative_area(circle2<T>& C,circle2<T>& c) {
-	if(C.r<c.r) return outside_relative_area(c,C);
-	R A=c.inter
+template<typename T> T intersection_relative_area(circle2<T>& C,circle2<T>& c) {
+	T A=c.intersection_area(C);
+	return A/c.area();
 }
 
 }
