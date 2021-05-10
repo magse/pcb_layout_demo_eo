@@ -2,55 +2,15 @@
 
 #include "LED.hpp"
 
-
-
-template<typename T> struct board;
-
-template<typename T> struct problem_board {
-	board<T>* brd=nullptr;
-	pagmo::vector_double::size_type get_nobj() const {return 1;}
-	pagmo::vector_double::size_type get_nec() const {return 0;}
-	pagmo::vector_double::size_type get_nic() const {return 1;}
-	pagmo::vector_double::size_type get_nix() const {return 0;}
-	// Implementation of the objective function.
-	pagmo::vector_double fitness(const pagmo::vector_double& dv) const {
-		assert(brd);
-		for(size_t n=0;n<brd->parts.size();n++) {
-			brd->parts[n].zone.p.x=dv[2*n+0];
-			brd->parts[n].zone.p.y=dv[2*n+1];
-		}
-		pagmo::vector_double fit(2,0);
-		fit[0]=static_cast<double>(brd->targets_evenness());
-		fit[1]=static_cast<double>(brd->areas_overlapping());
-		return fit;
-	}
-	// Implementation of the box bounds.
-	std::pair<pagmo::vector_double, pagmo::vector_double> get_bounds() const {
-		assert(brd);
-		pagmo::vector_double lb;
-		lb.resize(2*brd->parts.size(),double(-0.05*T(WORLD_SIZE)));
-		pagmo::vector_double ub;
-		ub.resize(2*brd->parts.size(),double(+0.05*(WORLD_SIZE)));
-		for(size_t n=0;n<brd->parts.size();n++) {
-			lb[2*n+0]-=brd->parts[n].zone.p.x;
-			lb[2*n+0]-=brd->parts[n].zone.p.y;
-			ub[2*n+0]+=brd->parts[n].zone.p.x;
-			ub[2*n+0]+=brd->parts[n].zone.p.y;
-		}
-		return {lb,ub};
-	}
-	bool has_gradient() const {return false;}
-	bool has_hessians() const {return false;}
-	bool has_set_seed() const {return false;}
-};
+namespace pcbeo {
 
 template<typename T> struct board {
 	typedef T real_t;
-	typedef point<T> point_t;
-	typedef part<T> part_t;
-	typedef circle<T> circle_t;
-	typedef vector<part_t> parts_t;
-	typedef pair<part_t*,real_t> flaw_t;
+	typedef geometry2d::vec2<T> point_t;
+	typedef geometry2d::circle2<T> circle_t;
+	typedef LED<T> LED_t;
+	typedef vector<LED_t> parts_t;
+	typedef pair<LED_t*,real_t> flaw_t;
 	typedef vector<flaw_t> flaws_t;
 	typedef vector<circle_t> targets_t;
 	parts_t parts;
@@ -522,4 +482,6 @@ int unit_tests(bool fileoutput=true) {
 	if(s && s->is_open()) {s->close(); delete s;}
 	cout << "OK" << endl;
 	return 0;
+}
+
 }
