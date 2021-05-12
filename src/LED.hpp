@@ -11,6 +11,18 @@ template<typename T> struct LED : public geometry2d::circle2<T> {
 	real_t rng=0;
 	real_t pwr=0;
 	LED()=default;
+	LED(circle_t pc,real_t rr,real_t pw) {
+		circle_t::circle_t(pc);
+		circle_t::rng=rr;
+		circle_t::pwr=pw;
+	}
+	LED(real_t px,real_t py,real_t pr,real_t rr,real_t pw) {
+		circle_t::x=px;
+		circle_t::y=py;
+		circle_t::r=pr;
+		circle_t::rng=rr;
+		circle_t::pwr=pw;
+	}
 	real_t energy(circle_t& c) {
 		auto d=circle_t::distance(c);
 		d*=pwr*c.area()/circle_t::area();

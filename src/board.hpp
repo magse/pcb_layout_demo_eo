@@ -29,102 +29,32 @@ template<typename T> struct board {
 			T z=T(-2.5)*T(CHANNEL_DISTANCE)+i*T(CHANNEL_DISTANCE);
 			circle_t c1(z,T(0),T(TARGET_RADIUS));
 			targets.push_back(c1);
-//			circle_t c2(T(0),z,T(TARGET_RADIUS));
-//			targets.push_back(c2);
 		}
 	}
 	~board() {
 		if(resfile.is_open()) resfile.close();
 	}
 	size_t size() {return parts.size();}
-	void add_IC(const size_t t,const size_t n) {
-		for(size_t i=0;i<n;i++) {
-			parts.push_back(part_t(re,t));
-			if(0!=LED_range<T>(t)) {
-				auto p=&(parts.back());
-				parts.push_back(part_t(re,0));
-				parts.back().comp=p;
-				parts.back().comp->zone.ref=&(p->zone);
-			}
-		}
+	void balance_parts() {
+		
+	}
+	size_t add_part(LEDtype t) {
+		uniform_real_distribution<T> dist(0,WORLD_SIZE);
+		circle_t pc(dist(re),dist(re),1);
+		parts.push_back(make_LED<T>(t));
+		balance_parts();
+		return size();
+	}
+	size_t add_parts(LEDtype t,size_t n) {
+		for(size_t i=0;i<n;i++) add_part(t);
+		return size();
 	}
 	size_t configuration_default() {
-		for(size_t t=0;t<=6;t++) {
-			add_IC(t,20);
-		}
-		update_neighbours();
-		return parts.size();
+		add_parts(LED3,20);
+		add_parts(LED5,12);
+		add_parts(LED8,6);
 	}
-	size_t configuration_simple1() {
-		add_IC(1,30);
-		add_IC(2,10);
-		add_IC(3,10);
-		add_IC(6,10);
-		update_neighbours();
-		return parts.size();
-	}
-	size_t configuration_simple2() {
-		add_IC(1,20);
-		add_IC(2,10);
-		add_IC(3,6);
-		add_IC(4,4);
-		add_IC(6,3);
-		update_neighbours();
-		return parts.size();
-	}
-	size_t configuration_simple3() {
-		add_IC(1,1);
-		add_IC(2,2);
-		add_IC(6,1);
-		update_neighbours();
-		return parts.size();
-	}
-	size_t configuration_add_LED(const size_t eLED5=1) {
-		add_IC(2,eLED5);
-		size_t nLED3=0;
-		size_t nLED5=0;
-		size_t nLED8=0;
-		size_t nLEDX=0;
-		for_each(begin(parts),end(parts),[&nLED3](auto& p){if(p.type==1) nLED3++;});
-		for_each(begin(parts),end(parts),[&nLED5](auto& p){if(p.type==2) nLED5++;});
-		for_each(begin(parts),end(parts),[&nLED8](auto& p){if(p.type==3) nLED8++;});
-		for_each(begin(parts),end(parts),[&nLEDX](auto& p){if(p.type==4) nLEDX++;});
-		size_t rLED3=static_cast<size_t>(ceil(1.5*nLED5));
-		size_t rLED8=static_cast<size_t>(ceil(0.2*nLED5));
-		size_t rLEDX=static_cast<size_t>(ceil(0.15*nLED5));
-		add_IC(1,rLED3-nLED3);
-		add_IC(3,rLED8-nLED8);
-		add_IC(4,rLEDX-nLEDX);
-		nLED3=nLED5=nLED8=nLEDX=0;
-		for_each(begin(parts),end(parts),[&nLED3](auto& p){if(p.type==1) nLED3++;});
-		for_each(begin(parts),end(parts),[&nLED5](auto& p){if(p.type==2) nLED5++;});
-		for_each(begin(parts),end(parts),[&nLED8](auto& p){if(p.type==3) nLED8++;});
-		for_each(begin(parts),end(parts),[&nLEDX](auto& p){if(p.type==4) nLEDX++;});
-		size_t nCOMP=0;
-		for_each(begin(parts),end(parts),[&nCOMP](auto& p){if(p.type==0) nCOMP++;});
-		add_IC(0,nLED3+nLED5+nLED8+nLEDX-nCOMP);
-		nCOMP=0;
-		for_each(begin(parts),end(parts),[&nCOMP](auto& p){if(p.type==0) nCOMP++;});
-		size_t nDRIVER=0;
-		for_each(begin(parts),end(parts),[&nDRIVER](auto& p){if(p.type==6) nDRIVER++;});
-		size_t rDRIVER=1+(nLED3+nLED5+nLED8+nLEDX)/8;
-		add_IC(6,rDRIVER-nDRIVER);
-		nDRIVER=0;
-		for_each(begin(parts),end(parts),[&nDRIVER](auto& p){if(p.type==6) nDRIVER++;});
-		return parts.size();
-	}
-	void update_neighbours() {
-		for(auto& i:parts) {
-			i.neighbours.clear();
-			for(auto& j:parts) {
-				if(&i!=&j) {
-					if(i.distance(j)<real_t(2)*i.zone.r) {
-						i.neighbours.push_back(&(j.zone));
-					}
-				}
-			}
-		}
-	}
+
 	T flaw_targets(part_t* p) {
 		size_t nt=0;
 		if(LED_range<T>(p->type)<=0) return 0;
