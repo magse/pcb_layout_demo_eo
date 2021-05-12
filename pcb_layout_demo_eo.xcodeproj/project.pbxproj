@@ -27,7 +27,7 @@
 		5D227868261C8E25000EE3E3 /* pcb_layout_demo_eo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pcb_layout_demo_eo.cpp; sourceTree = "<group>"; };
 		5D5EB373261CA2DE0004A89D /* board.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = board.hpp; sourceTree = "<group>"; };
 		5D5EB374261CA2DE0004A89D /* math.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = math.hpp; sourceTree = "<group>"; };
-		5D5EB375261CA2DE0004A89D /* LED.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = LED.hpp; sourceTree = "<group>"; };
+		5D5EB375261CA2DE0004A89D /* part.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = part.hpp; sourceTree = "<group>"; };
 		5D5EB377261CA34C0004A89D /* config.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = config.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -63,7 +63,7 @@
 			children = (
 				5D5EB377261CA34C0004A89D /* config.hpp */,
 				5D5EB373261CA2DE0004A89D /* board.hpp */,
-				5D5EB375261CA2DE0004A89D /* LED.hpp */,
+				5D5EB375261CA2DE0004A89D /* part.hpp */,
 				5D5EB374261CA2DE0004A89D /* math.hpp */,
 				5D227868261C8E25000EE3E3 /* pcb_layout_demo_eo.cpp */,
 			);

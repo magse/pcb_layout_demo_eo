@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LED.hpp"
+#include "part.hpp"
 
 namespace pcbeo {
 
@@ -8,9 +8,9 @@ template<typename T> struct board {
 	typedef T real_t;
 	typedef geometry2d::vec2<T> point_t;
 	typedef geometry2d::circle2<T> circle_t;
-	typedef LED<T> LED_t;
-	typedef vector<LED_t> parts_t;
-	typedef pair<LED_t*,real_t> flaw_t;
+	typedef part<T> part_t;
+	typedef vector<part_t> parts_t;
+	typedef pair<part_t*,real_t> flaw_t;
 	typedef vector<flaw_t> flaws_t;
 	typedef vector<circle_t> targets_t;
 	parts_t parts;
@@ -38,14 +38,13 @@ template<typename T> struct board {
 	void balance_parts() {
 		
 	}
-	size_t add_part(LEDtype t) {
+	size_t add_part(part_type t) {
 		uniform_real_distribution<T> dist(0,WORLD_SIZE);
-		circle_t pc(dist(re),dist(re),1);
-		parts.push_back(make_LED<T>(t));
+		parts.push_back(part_t(dist(re),dist(re),t));
 		balance_parts();
 		return size();
 	}
-	size_t add_parts(LEDtype t,size_t n) {
+	size_t add_parts(part_type t,size_t n) {
 		for(size_t i=0;i<n;i++) add_part(t);
 		return size();
 	}
