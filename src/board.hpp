@@ -10,7 +10,7 @@ template<typename T> struct board {
 	typedef geometry2d::circle2<T> circle_t;
 	typedef part<T> part_t;
 	typedef vector<part_t> parts_t;
-	typedef pair<part_t*,real_t> flaw_t;
+	typedef pair<size_t,real_t> flaw_t;
 	typedef vector<flaw_t> flaws_t;
 	typedef vector<circle_t> targets_t;
 	parts_t parts;
@@ -76,29 +76,34 @@ template<typename T> struct board {
 		if(seqflaws && f) return f;
 		return f;
 	}
-	void flaws(flaws_t& f) {
-		f.clear();
-		for(auto& p:parts) f.push_back(make_pair(&p,flaw(p)));
+	void flaws(flaws_t& fl) {
+		fl.clear();
+        size_t n=0;
+		for(auto& p:parts) fl.push_back(make_pair(n++,flaw(p)));
 	}
 	bool improve(part_t& p) {
-		uniform_real_distribution<real_t> dist(-0.01,0.01);
-		if(p.flaw_outside(outeredge)) {
+		uniform_real_distribution<real_t> dist(-0.5,0.5);
+		if(0<p.flaw_outside(outeredge)) {
 			p.border.x=p.border.x*real_t(0.98)+dist(re);
 			p.border.y=p.border.y*real_t(0.98)+dist(re);
+            return true;
 		}
-		if(p.flaw_inside(inneredge)) {
+		if(0<p.flaw_inside(inneredge)) {
 			p.border.x=p.border.x*real_t(1.02)+dist(re);
 			p.border.y=p.border.y*real_t(1.02)+dist(re);
+            return true;
 		}
-		if(p.flaw_bottom(SIDEDISTANCE)) {
+		if(0<p.flaw_bottom(SIDEDISTANCE)) {
 			p.border.x=p.border.x+dist(re);
 			p.border.y=p.border.y*real_t(1.02)+dist(re);
+            return true;
 		}
-		if(p.flaw_side(SIDEDISTANCE)) {
+		if(0<p.flaw_side(SIDEDISTANCE)) {
 			p.border.x=p.border.x*real_t(1.02)+dist(re);
 			p.border.y=p.border.y+dist(re);
+            return true;
 		}
-		return true;
+		return false;
 	}
 	void save_state() {
 		resfile << filecounter;
@@ -116,6 +121,8 @@ template<typename T> struct board {
 #endif
 		}
 		resfile << endl;
+        filecounter++;
+//        cout << parts[1].border.x << endl;
 	}
 //
 //	T flaw_targets(part_t* p) {
@@ -177,10 +184,7 @@ template<typename T> struct board {
 //			flaws[i].second+=flaw_targets(flaws[i].first);
 //		}
 //	}
-	part_t* sort_and_select_worst(flaws_t& flaws,const real_t prob=0.05,const real_t lambda=real_t(1.1)) {
-		sort(begin(flaws),end(flaws),[](auto& a,auto& b){
-			return a.second>b.second;
-		});
+	size_t select_worst(flaws_t& flaws,const real_t prob=0.09,const real_t lambda=real_t(0.9)) {
 		size_t n=random_exp(re,flaws.size(),prob,lambda);
 		return flaws[n].first;
 	}
@@ -236,8 +240,11 @@ template<typename T> struct board {
 	bool one_step(flaws_t& fl) {
 //		update_neighbours();
 		flaws(fl);
-		auto w=sort_and_select_worst(fl);
-		bool res=improve(*w);
+        sort(begin(fl),end(fl),[](auto& a,auto& b){
+            return a.second>b.second;
+        });
+		size_t w=select_worst(fl);
+		bool res=improve(parts[w]);
 		save_state();
 		return res;
 	}
