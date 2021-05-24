@@ -17,9 +17,9 @@
 #define RANDOMENGINE std::default_random_engine
 #define CSV ","
 
-#define OUTEREDGERADIUS 70.0
-#define INNEREDGERADIUS 23.0
-#define SIDEDISTANCE 4.0
+#define OUTEREDGERADIUS 60.0
+#define INNEREDGERADIUS 20.0
+#define SIDEDISTANCE 5.0
 
 #define CHANNEL_DISTANCE 4.5
 #define TARGET_RADIUS 0.9

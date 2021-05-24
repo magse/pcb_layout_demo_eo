@@ -15,7 +15,7 @@ using namespace std;
 int main(int argc, const char * argv[]) {
 		
 	size_t testnr=0;
-	size_t steps=50000;
+	size_t steps=500000;
 	size_t pinc=50;
 	if(argc>1) testnr=atoll(argv[1]);
 	if(argc>2) steps=atoll(argv[2]);

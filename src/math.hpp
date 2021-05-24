@@ -10,10 +10,10 @@ namespace pcbeo {
 
 template<typename T> T sqr(T x) { return x*x;}
 
-template<typename T> T gtoz(const T x) {
-	if(x<0) return 0;
-	return x;
-}
+//template<typename T> T gtoz(const T x) {
+//	if(x<0) return 0;
+//	return x;
+//}
 
 template<typename T> T posvalue(const T x) {return x>T(0) ? x : T(0);}
 

@@ -77,9 +77,14 @@ template<typename T> struct part {
 		d*=pwr*c.area()/circle_t::area();
 	}
 	T flaw_outside(circle_t& outeredge) {
-		return T(1)-intersection_relative_area<T>(outeredge,border);
+		T d=posvalue(outeredge.distance(border)/WORLD_SIZE);
+		return T(1)-intersection_relative_area<T>(outeredge,border)+d;
 	}
 	T flaw_inside(circle_t& inneredge) {
+		vec2<T> c=border.center();
+		T d=inneredge.distance(c);
+		T f=0;
+		if((d+border.r)<inneredge.r) f=(inneredge.r-border.r-d)/inneredge.r;
 		return intersection_relative_area(inneredge,border);
 	}
 	T flaw_bottom(const real_t Y) {

@@ -48,7 +48,7 @@ template<typename T> struct board {
 		add_parts(RESISTOR,nResistors);
 	}
 	size_t add_part(part_type t) {
-		uniform_real_distribution<T> dist(0,WORLD_SIZE);
+		uniform_real_distribution<T> dist(-WORLD_SIZE,WORLD_SIZE);
 		parts.push_back(part_t(dist(re),dist(re),t));
 		balance_parts();
 		return size();
@@ -63,9 +63,18 @@ template<typename T> struct board {
 		add_parts(LED8,6);
 		return size();
 	}
+	real_t flaw_overlay(part_t& p) {
+		real_t A=0;
+		for_each(begin(parts),end(parts),[&p,&A](auto& q){
+			if(&p!=&q) {
+				A+=p.border.intersection_area(q.border);
+			}
+		});
+		return A/p.border.area();
+	}
 	real_t flaw(part_t& p) {
 		real_t f=0;
-		bool seqflaws=true;
+		bool seqflaws=false;
 		f+=p.flaw_outside(outeredge);
 		if(seqflaws && f) return f;
 		f+=p.flaw_inside(inneredge);
@@ -73,6 +82,8 @@ template<typename T> struct board {
 		f+=p.flaw_bottom(SIDEDISTANCE);
 		if(seqflaws && f) return f;
 		f+=p.flaw_side(SIDEDISTANCE);
+		if(seqflaws && f) return f;
+		f+=flaw_overlay(p);
 		if(seqflaws && f) return f;
 		return f;
 	}
@@ -82,7 +93,7 @@ template<typename T> struct board {
 		for(auto& p:parts) fl.push_back(make_pair(n++,flaw(p)));
 	}
 	bool improve(part_t& p) {
-		uniform_real_distribution<real_t> dist(-0.5,0.5);
+		uniform_real_distribution<real_t> dist(-2.0,2.0);
 		if(0<p.flaw_outside(outeredge)) {
 			p.border.x=p.border.x*real_t(0.98)+dist(re);
 			p.border.y=p.border.y*real_t(0.98)+dist(re);
@@ -94,14 +105,19 @@ template<typename T> struct board {
             return true;
 		}
 		if(0<p.flaw_bottom(SIDEDISTANCE)) {
-			p.border.x=p.border.x+dist(re);
-			p.border.y=p.border.y*real_t(1.02)+dist(re);
+			p.border.x=p.border.x/*+dist(re)*/;
+			p.border.y=p.border.y+real_t(1)+dist(re);
             return true;
 		}
 		if(0<p.flaw_side(SIDEDISTANCE)) {
-			p.border.x=p.border.x*real_t(1.02)+dist(re);
-			p.border.y=p.border.y+dist(re);
+			p.border.x=p.border.x+real_t(1)+dist(re);
+			p.border.y=p.border.y/*+dist(re)*/;
             return true;
+		}
+		if(0<flaw_overlay(p)) {
+			p.border.x+=5*dist(re);
+			p.border.y+=5*dist(re);
+			return true;
 		}
 		return false;
 	}
