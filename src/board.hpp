@@ -115,18 +115,21 @@ template<typename T> struct board {
             return true;
 		}
 		if(0<flaw_overlay(p)) {
-            real_t A=0;
-            for(auto& q:parts) A+=p.border.intersection_area(q.border);
+//            real_t A=0;
+//            for(auto& q:parts) A+=p.border.intersection_area(q.border);
             vec2<real_t> v;
             for(auto& q:parts) {
                 auto d=p.border.center()-q.border.center();
-                auto r=p.border.intersection_area(q.border)/A;
-                v+=d*r;
+//                auto r=p.border.intersection_area(q.border)/A;
+                d.normalize();
+                v+=d*q.border.r;
+//                v+=d*r;
 //                q.border.center()-=real_t(0.1)*d*r;
             }
             v.normalize();
-            v=v*p.border.r;
-            p.border.center()+=v;
+            v=v*p.border.r*real_t(0.1);
+//            p.border.center()+=v;
+            p.border.center()+=real_t(0.1)*vec2<real_t>(dist(re),dist(re));
 			return true;
 		}
 		return false;
