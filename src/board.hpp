@@ -115,8 +115,18 @@ template<typename T> struct board {
             return true;
 		}
 		if(0<flaw_overlay(p)) {
-			p.border.x+=5*dist(re);
-			p.border.y+=5*dist(re);
+            real_t A=0;
+            for(auto& q:parts) A+=p.border.intersection_area(q.border);
+            vec2<real_t> v;
+            for(auto& q:parts) {
+                auto d=p.border.center()-q.border.center();
+                auto r=p.border.intersection_area(q.border)/A;
+                v+=d*r;
+//                q.border.center()-=real_t(0.1)*d*r;
+            }
+            v.normalize();
+            v=v*p.border.r;
+            p.border.center()+=v;
 			return true;
 		}
 		return false;
@@ -125,16 +135,16 @@ template<typename T> struct board {
 		resfile << filecounter;
 		for(auto& p:parts) {
 			resfile << CSV << p.border.x << CSV << p.border.y << CSV << p.border.r;
-#ifdef DEBUG
-#ifndef __has_builtin
-  #define __has_builtin(x) 0
-#endif
-#ifdef __clang__
-#ifdef __has_builtin(__builtin_dump_struct)
+//#ifdef DEBUG
+//#ifndef __has_builtin
+//  #define __has_builtin(x) 0
+//#endif
+//#ifdef __clang__
+//#ifdef __has_builtin(__builtin_dump_struct)
 //			__builtin_dump_struct(&p, &printf);
-#endif
-#endif
-#endif
+//#endif
+//#endif
+//#endif
 		}
 		resfile << endl;
         filecounter++;
