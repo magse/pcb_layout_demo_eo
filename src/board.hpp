@@ -24,7 +24,7 @@ template<typename T> struct board {
 		uint64_t sd=chrono::system_clock::now().time_since_epoch().count();
 		re.seed(static_cast<default_random_engine::result_type>(sd));
 		ostringstream fn;
-		fn << "BRD" << setfill('0') << setw(8) << sd << ".txt";
+		fn << "BRD" << setfill('0') << setw(8) << sd << ".csv";
 		cout << fn.str() << endl;
 		resfile.open(fn.str());
 		for(int i=0;i<6;i++) {
@@ -58,9 +58,9 @@ template<typename T> struct board {
 		return size();
 	}
 	size_t configuration_default() {
-		add_parts(LED3,20);
-		add_parts(LED5,12);
-		add_parts(LED8,6);
+		add_parts(LED3,12);
+		add_parts(LED5,8);
+		add_parts(LED8,4);
 		return size();
 	}
 	real_t flaw_overlay(part_t& p) {
@@ -83,14 +83,20 @@ template<typename T> struct board {
 		if(seqflaws && f) return f;
 		f+=p.flaw_side(SIDEDISTANCE);
 		if(seqflaws && f) return f;
-		f+=flaw_overlay(p);
-		if(seqflaws && f) return f;
+//		f+=flaw_overlay(p);
+//		if(seqflaws && f) return f;
 		return f;
 	}
-	void flaws(flaws_t& fl) {
+	real_t flaws(flaws_t& fl) {
 		fl.clear();
         size_t n=0;
-		for(auto& p:parts) fl.push_back(make_pair(n++,flaw(p)));
+		long double F=0;
+		for(auto& p:parts) {
+			auto f=flaw(p);
+			fl.push_back(make_pair(n++,f));
+			F+=f;
+		}
+		return static_cast<real_t>(F);
 	}
 	bool improve(part_t& p) {
 		uniform_real_distribution<real_t> dist(-2.0,2.0);
@@ -114,24 +120,24 @@ template<typename T> struct board {
 			p.border.y=p.border.y/*+dist(re)*/;
             return true;
 		}
-		if(0<flaw_overlay(p)) {
-//            real_t A=0;
-//            for(auto& q:parts) A+=p.border.intersection_area(q.border);
-            vec2<real_t> v;
-            for(auto& q:parts) {
-                auto d=p.border.center()-q.border.center();
-//                auto r=p.border.intersection_area(q.border)/A;
-                d.normalize();
-                v+=d*q.border.r;
-//                v+=d*r;
-//                q.border.center()-=real_t(0.1)*d*r;
-            }
-            v.normalize();
-            v=v*p.border.r*real_t(0.1);
-//            p.border.center()+=v;
-            p.border.center()+=real_t(0.1)*vec2<real_t>(dist(re),dist(re));
-			return true;
-		}
+//		if(0<flaw_overlay(p)) {
+////            real_t A=0;
+////            for(auto& q:parts) A+=p.border.intersection_area(q.border);
+//            vec2<real_t> v;
+//            for(auto& q:parts) {
+//                auto d=p.border.center()-q.border.center();
+////                auto r=p.border.intersection_area(q.border)/A;
+//                d.normalize();
+//                v+=d*q.border.r;
+////                v+=d*r;
+////                q.border.center()-=real_t(0.1)*d*r;
+//            }
+//            v.normalize();
+//            v=v*p.border.r*real_t(0.1);
+////            p.border.center()+=v;
+//            p.border.center()+=real_t(0.1)*vec2<real_t>(dist(re),dist(re));
+//			return true;
+//		}
 		return false;
 	}
 	void save_state() {

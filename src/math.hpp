@@ -1,7 +1,7 @@
 #pragma once
 
 #include "config.hpp"
-#include "geometry2d.hpp"
+#include <geometry2d/geometry2d.hpp>
 
 using namespace std;
 using namespace geometry2d;
@@ -9,11 +9,6 @@ using namespace geometry2d;
 namespace pcbeo {
 
 template<typename T> T sqr(T x) { return x*x;}
-
-//template<typename T> T gtoz(const T x) {
-//	if(x<0) return 0;
-//	return x;
-//}
 
 template<typename T> T posvalue(const T x) {return x>T(0) ? x : T(0);}
 
@@ -33,9 +28,9 @@ template<typename T> size_t random_exp(RANDOMENGINE& re,const size_t s,const T p
 	return i;
 }
 
-/// https://mathworld.wolfram.com/Circle-CircleIntersection.html
-/// https://www.xarg.org/2016/07/calculate-the-intersection-area-of-two-circles/
 template<typename T> T maximumchorddistance(const T R,const T r) {
+	/// https://mathworld.wolfram.com/Circle-CircleIntersection.html
+	/// https://www.xarg.org/2016/07/calculate-the-intersection-area-of-two-circles/
 	assert(R>=r);
 	assert(r>0);
 	T d_max=sqrt(abs(sqr(r)-sqr(R)));

@@ -100,11 +100,6 @@ template<typename T> struct part {
 		if(circle_t::intersection_area(othercomponent)) return posvalue(rng-othercomponent.rng)/rng;
 		return T(0);
 	}
-	string svg_style() {
-		ostringstream ss;
-		ss << "fill:#fbfae1;stroke:#444444;stroke-width:0.4;stroke-linecap:round;stroke-linejoin:round";
-		return ss.str();
-	}
 	bool is_LED() {return LED3==typ||LED5==typ||LED8==typ||LEDB==typ;}
 };
 

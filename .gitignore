@@ -37,4 +37,6 @@ DerivedData/
 pcb_layout_demo_eo.xcodeproj/project.xcworkspace/
 pcb_layout_demo_eo.xcodeproj/xcuserdata/
 BRD*.txt
+BRD*.csv
+BRD*.mov
 
