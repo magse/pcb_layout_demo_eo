@@ -43,12 +43,12 @@ template<typename T> struct board {
 		size_t nDrivers=nLEDS/8+1;
 		for(auto& p:parts) if(DRIVER==p.typ) nDrivers--;
 		add_parts(DRIVER,nDrivers);
-		size_t nResistors=nLEDS;
-		for(auto& p:parts) if(RESISTOR==p.typ) nResistors--;
-		add_parts(RESISTOR,nResistors);
+//		size_t nResistors=nLEDS;
+//		for(auto& p:parts) if(RESISTOR==p.typ) nResistors--;
+//		add_parts(RESISTOR,nResistors);
 	}
 	size_t add_part(part_type t) {
-		uniform_real_distribution<T> dist(-WORLD_SIZE,WORLD_SIZE);
+		uniform_real_distribution<T> dist(0,WORLD_SIZE);
 		parts.push_back(part_t(dist(re),dist(re),t));
 		balance_parts();
 		return size();
@@ -58,9 +58,9 @@ template<typename T> struct board {
 		return size();
 	}
 	size_t configuration_default() {
-		add_parts(LED3,12);
-		add_parts(LED5,8);
-		add_parts(LED8,4);
+		add_parts(LED3,72);
+		add_parts(LED5,24);
+		add_parts(LED8,18);
 		return size();
 	}
 	real_t flaw_overlay(part_t& p) {
@@ -70,7 +70,6 @@ template<typename T> struct board {
 				A+=p.border.intersection_area(q.border);
 			}
 		}
-		assert(p.border.area());
 		real_t f=A/p.border.area();
 		return f;
 	}
@@ -105,15 +104,15 @@ template<typename T> struct board {
 		return static_cast<real_t>(F);
 	}
 	bool improve(part_t& p) {
-		uniform_real_distribution<real_t> dist(-2.0,2.0);
+		uniform_real_distribution<real_t> dist(-1.0,1.0);
 		if(0<p.flaw_outside(outeredge)) {
-			p.border.x=p.border.x*real_t(0.98)+dist(re);
-			p.border.y=p.border.y*real_t(0.98)+dist(re);
+			p.border.x=p.border.x*real_t(0.99)+dist(re);
+			p.border.y=p.border.y*real_t(0.99)+dist(re);
             return true;
 		}
 		if(0<p.flaw_inside(inneredge)) {
-			p.border.x=p.border.x*real_t(1.02)+dist(re);
-			p.border.y=p.border.y*real_t(1.02)+dist(re);
+			p.border.x=p.border.x*real_t(1.01)+dist(re);
+			p.border.y=p.border.y*real_t(1.01)+dist(re);
             return true;
 		}
 		if(0<p.flaw_bottom(SIDEDISTANCE)) {
@@ -133,24 +132,26 @@ template<typename T> struct board {
 			size_t n=0;
 			for_each(begin(parts),end(parts),[&p,&A,&n,&pA](auto& q){
 				if(&p!=&q) {
-					A+=pA[n++]=p.border.intersection_area(q.border);
+					pA[n]=p.border.intersection_area(q.border);
+					A+=pA[n];
+					n++;
 				}
 			});
 			if(0==A) return false;
-			for(auto& a:pA) a=a/(A+p.border.area())*real_t(0.01)*p.border.r;
+			for(auto& a:pA) a=a/(A+p.border.area())*real_t(1)*p.border.r;
 			for(n=0;n<parts.size();n++) {
 				assert(!isnan(pA[n])&&!isinf(pA[n]));
 				vec2<real_t> d=parts[n].border.center()-p.border.center(); // Direction away from part p
 				d*=pA[n];
-				d+=(vec2<real_t>(dist(re),dist(re))*real_t(0.001));
+				d+=(vec2<real_t>(dist(re),dist(re))*real_t(0.1));
 				assert(!isnan(d.x)&&!isinf(d.x));
 				assert(!isnan(d.y)&&!isinf(d.y));
 				parts[n].border+=d;
 				p.border-=d;
-				limit_to<real_t>(parts[n].border.x,-WORLD_SIZE,+WORLD_SIZE);
-				limit_to<real_t>(parts[n].border.y,-WORLD_SIZE,+WORLD_SIZE);
-				limit_to<real_t>(p.border.x,-WORLD_SIZE,+WORLD_SIZE);
-				limit_to<real_t>(p.border.y,-WORLD_SIZE,+WORLD_SIZE);
+				limit_to<real_t>(parts[n].border.x,0,+WORLD_SIZE);
+				limit_to<real_t>(parts[n].border.y,0,+WORLD_SIZE);
+				limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
+				limit_to<real_t>(p.border.y,0,+WORLD_SIZE);
 			}
 			return true;
 		}
@@ -168,7 +169,14 @@ template<typename T> struct board {
         filecounter++;
 	}
 	size_t select_worst(flaws_t& flaws,const real_t lambda,size_t& n) {
-		n=random_exp(re,flaws.size(),lambda);
+//		size_t fs=min<size_t>(5,flaws.size());
+//		n=random_exp(re,fs,lambda);
+		n=0;
+		uniform_real_distribution<real_t> dist(0,1);
+		if(dist(re)<0.02) n++;
+		if(dist(re)<0.001) n++;
+//		if(dist(re)<0.001) n++;
+//		if(dist(re)<0.0001) n++;
 		return flaws[n].first;
 	}
 	bool one_step(flaws_t& fl) {
@@ -177,9 +185,9 @@ template<typename T> struct board {
             return a.second>b.second;
         });
 		size_t i=0;
-		size_t w=select_worst(fl,real_t(0.2),i);
+		size_t w=select_worst(fl,real_t(0.05),i);
 		bool res=improve(parts[w]);
-		resfile << filecounter << CSV << F << CSV << i;
+		resfile << w << CSV << F << CSV << i;
 		save_state();
 		return res;
 	}
