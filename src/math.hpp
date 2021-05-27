@@ -19,13 +19,18 @@ template<typename T> T div(const T a,const T b) {
 	return a/b;
 }
 
-template<typename T> size_t random_exp(RANDOMENGINE& re,const size_t s,const T prob,const T lambda) {
-	exponential_distribution<T> dist(lambda);
-	T r=dist(re);
-	r=min(r,T(5.0*lambda));
-	r=r/T(5.0*lambda);
-	size_t i=static_cast<size_t>(floor(s*prob*r));
+template<typename T> size_t random_exp(RANDOMENGINE& re,const size_t s,const T lambda) {
+	geometric_distribution<size_t> dist(lambda);
+	size_t i=dist(re);
+	if(i>=s) i=s-1;
 	return i;
+}
+
+template<typename T> void limit_to(T& x,const T a,const T b) {
+	assert(!isnan(x));
+	assert(!isinf(x));
+	if(x<a) x=a;
+	if(x>b) x=b;
 }
 
 template<typename T> T maximumchorddistance(const T R,const T r) {
