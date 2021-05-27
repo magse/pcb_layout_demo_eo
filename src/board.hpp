@@ -63,19 +63,34 @@ template<typename T> struct board {
 		add_parts(LED8,18);
 		return size();
 	}
-	real_t flaw_overlay(part_t& p) {
-		real_t A=0;
+	part_t* nearest_part(part_t& p) {
+		real_t f=sqr(WORLD_SIZE);
+		auto cp=&p;
 		for(auto& q:parts) {
-			if(&p!=&q) {
-				A+=p.border.intersection_area(q.border);
+			if(0<p.border.intersection_area(q.border)) {
+				auto d=q.border.center()-p.border.center();
+				if(0<d.length() && d.length()<f) {
+					cp=&q;
+				}
 			}
 		}
-		real_t f=A/p.border.area();
-		return f;
+		return cp;
+	}
+	real_t flaw_overlay(part_t& p) {
+//		real_t A=0;
+//		for(auto& q:parts) {
+//			if(&p!=&q) {
+//				A+=p.border.intersection_area(q.border);
+//			}
+//		}
+//		real_t f=A/p.border.area();
+		auto cp=nearest_part(p);
+		auto d=cp->border.center()-p.border.center();
+		return abs(d.length()/(cp->border.r+p.border.r));
 	}
 	real_t flaw(part_t& p) {
 		real_t f=0;
-		bool seqflaws=false;
+		bool seqflaws=true;
 		f+=p.flaw_outside(outeredge);
 		if(seqflaws && f) return f;
 		f+=p.flaw_inside(inneredge);
@@ -126,33 +141,47 @@ template<typename T> struct board {
             return true;
 		}
 		if(0<flaw_overlay(p)) {
-			// This flaw differs from the ones above in that the other parts have to move when this part scores a flaw.
-			real_t A=0;
-			vector<real_t> pA(parts.size(),0);
-			size_t n=0;
-			for_each(begin(parts),end(parts),[&p,&A,&n,&pA](auto& q){
-				if(&p!=&q) {
-					pA[n]=p.border.intersection_area(q.border);
-					A+=pA[n];
-					n++;
-				}
-			});
-			if(0==A) return false;
-			for(auto& a:pA) a=a/(A+p.border.area())*real_t(1)*p.border.r;
-			for(n=0;n<parts.size();n++) {
-				assert(!isnan(pA[n])&&!isinf(pA[n]));
-				vec2<real_t> d=parts[n].border.center()-p.border.center(); // Direction away from part p
-				d*=pA[n];
-				d+=(vec2<real_t>(dist(re),dist(re))*real_t(0.1));
-				assert(!isnan(d.x)&&!isinf(d.x));
-				assert(!isnan(d.y)&&!isinf(d.y));
-				parts[n].border+=d;
-				p.border-=d;
-				limit_to<real_t>(parts[n].border.x,0,+WORLD_SIZE);
-				limit_to<real_t>(parts[n].border.y,0,+WORLD_SIZE);
-				limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
-				limit_to<real_t>(p.border.y,0,+WORLD_SIZE);
-			}
+			auto cp=nearest_part(p);
+			auto d=cp->border.center()-p.border.center();
+			cp->border+=(d*real_t(0.05));
+			p.border-=(d*real_t(0.5));
+			limit_to<real_t>(cp->border.x,0,+WORLD_SIZE);
+			limit_to<real_t>(cp->border.y,0,+WORLD_SIZE);
+			limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
+			limit_to<real_t>(p.border.y,0,+WORLD_SIZE);
+//			// This flaw differs from the ones above in that the other parts have to move when this part scores a flaw.
+//			real_t A=0;
+//			vector<real_t> pA(parts.size(),0);
+//			size_t n=0;
+//			for_each(begin(parts),end(parts),[&p,&A,&n,&pA](auto& q){
+//				if(&p!=&q) {
+//					pA[n]=p.border.intersection_area(q.border);
+//					A+=pA[n];
+//					n++;
+//				}
+//			});
+//			if(0==A) {
+//				p.border.x+=real_t(0.1)*dist(re);
+//				p.border.y+=real_t(0.1)*dist(re);
+//				limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
+//				limit_to<real_t>(p.border.y,0,+WORLD_SIZE);
+//				return true;
+//			}
+//			for(auto& a:pA) a=a/(A+p.border.area())*real_t(1)*p.border.r;
+//			for(n=0;n<parts.size();n++) {
+//				assert(!isnan(pA[n])&&!isinf(pA[n]));
+//				vec2<real_t> d=parts[n].border.center()-p.border.center(); // Direction away from part p
+//				d*=pA[n];
+//				d+=(vec2<real_t>(dist(re),dist(re))*real_t(0.1));
+//				assert(!isnan(d.x)&&!isinf(d.x));
+//				assert(!isnan(d.y)&&!isinf(d.y));
+//				parts[n].border+=d;
+////				p.border-=d;
+//				limit_to<real_t>(parts[n].border.x,0,+WORLD_SIZE);
+//				limit_to<real_t>(parts[n].border.y,0,+WORLD_SIZE);
+//				limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
+//				limit_to<real_t>(p.border.y,0,+WORLD_SIZE);
+//			}
 			return true;
 		}
 		return false;
