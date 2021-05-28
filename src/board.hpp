@@ -75,8 +75,9 @@ template<typename T> struct board {
 	}
 	size_t copy_from(board& brd) {
 		parts.clear();
-		copy(begin(parts),end(parts),insert_iterator<parts_t>(brd.parts));
+		copy(begin(parts),end(parts),back_inserter(brd.parts));
 		sort_radius();
+		return size();
 	}
 	size_t configuration_default() {
 		add_parts(LED3,72);
@@ -255,10 +256,9 @@ template<typename T> struct board {
 //		n=random_exp(re,fs,lambda);
 		n=0;
 		uniform_real_distribution<real_t> dist(0,1);
-		if(dist(re)<0.02) n++;
-		if(dist(re)<0.001) n++;
-//		if(dist(re)<0.001) n++;
-//		if(dist(re)<0.0001) n++;
+		if(dist(re)<0.05) n++;
+		if(dist(re)<0.005) n++;
+		if(dist(re)<0.0001) n++;
 		return flaws[n].first;
 	}
 	bool one_step(flaws_t& fl) {
@@ -273,7 +273,7 @@ template<typename T> struct board {
 		save_state();
 		return res;
 	}
-	size_t run_steps(const size_t stp=1000,const size_t pinc=10000) {
+	size_t run_steps(const size_t stp=1000) {
 		cout << "running " << stp << " more steps" << endl;
 		flaws_t fl;
 		size_t s=stp;

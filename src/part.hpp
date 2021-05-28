@@ -22,12 +22,12 @@ template<typename T> struct part {
 		switch (t) {
 			case DRIVER:
 				border.r=0.5*DRIVER_SIZE;
-				rng=WORLD_SIZE;
+				rng=real_t(2)*WORLD_SIZE;
 				pwr=0;
 				break;
 			case RESISTOR:
 				border.r=0.5*RESISTOR_SIZE;
-				rng=WORLD_SIZE;
+				rng=real_t(2)*WORLD_SIZE;
 				pwr=0;
 				break;
 			case LED3:
