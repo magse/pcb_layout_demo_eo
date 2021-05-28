@@ -27,11 +27,24 @@ template<typename T> struct board {
 		fn << "BRD" << setfill('0') << setw(8) << sd << ".csv";
 		cout << fn.str() << endl;
 		resfile.open(fn.str());
-		for(int i=0;i<6;i++) {
-			T z=T(-2.5)*T(CHANNEL_DISTANCE)+i*T(CHANNEL_DISTANCE);
-			circle_t c1(z,T(0),T(TARGET_RADIUS));
-			targets.push_back(c1);
-		}
+//		for(int i=0;i<6;i++) {
+//			T z=T(-2.5)*T(CHANNEL_DISTANCE)+i*T(CHANNEL_DISTANCE);
+//			circle_t c1(z,T(0),T(TARGET_RADIUS));
+//			targets.push_back(c1);
+//		}
+		circle_t c(0,0,TARGET_RADIUS);
+		c=vec2<real_t>(T(0.5)*CHANNEL_DISTANCE,0);
+		targets.push_back(c);
+		c=vec2<real_t>(T(1.5)*CHANNEL_DISTANCE,0);
+		targets.push_back(c);
+		c=vec2<real_t>(T(2.5)*CHANNEL_DISTANCE,0);
+		targets.push_back(c);
+		c=vec2<real_t>(0,T(0.5)*CHANNEL_DISTANCE);
+		targets.push_back(c);
+		c=vec2<real_t>(0,T(1.5)*CHANNEL_DISTANCE);
+		targets.push_back(c);
+		c=vec2<real_t>(0,T(2.5)*CHANNEL_DISTANCE);
+		targets.push_back(c);
 	}
 	~board() {
 		if(resfile.is_open()) resfile.close();
@@ -57,10 +70,19 @@ template<typename T> struct board {
 		for(size_t i=0;i<n;i++) add_part(t);
 		return size();
 	}
+	void sort_radius() {
+		sort(begin(parts),end(parts),[](auto& a,auto& b){return a.border.r > b.border.r;});
+	}
+	size_t copy_from(board& brd) {
+		parts.clear();
+		copy(begin(parts),end(parts),insert_iterator<parts_t>(brd.parts));
+		sort_radius();
+	}
 	size_t configuration_default() {
 		add_parts(LED3,72);
 		add_parts(LED5,24);
 		add_parts(LED8,18);
+		sort_radius();
 		return size();
 	}
 	part_t* nearest_part(part_t& p) {
@@ -88,6 +110,14 @@ template<typename T> struct board {
 		auto d=cp->border.center()-p.border.center();
 		return abs(d.length()/(cp->border.r+p.border.r));
 	}
+	real_t flaw_range(part_t& p) {
+		real_t f=3.0;
+		for(auto& t:targets) {
+			auto d=t.center() - p.border.center();
+			if(d.length()<p.rng) f=f-1.0;
+		}
+		return posvalue(f);
+	}
 	real_t flaw(part_t& p) {
 		real_t f=0;
 		bool seqflaws=true;
@@ -100,6 +130,8 @@ template<typename T> struct board {
 		f+=p.flaw_side(SIDEDISTANCE);
 		if(seqflaws && f) return f;
 		f+=flaw_overlay(p);
+		if(seqflaws && f) return f;
+		f+=flaw_range(p);
 		if(seqflaws && f) return f;
 		return f;
 	}
@@ -121,30 +153,30 @@ template<typename T> struct board {
 	bool improve(part_t& p) {
 		uniform_real_distribution<real_t> dist(-1.0,1.0);
 		if(0<p.flaw_outside(outeredge)) {
-			p.border.x=p.border.x*real_t(0.99)+dist(re);
-			p.border.y=p.border.y*real_t(0.99)+dist(re);
+			p.border.x=p.border.x*real_t(0.99)/*+dist(re)*/;
+			p.border.y=p.border.y*real_t(0.99)/*+dist(re)*/;
             return true;
 		}
 		if(0<p.flaw_inside(inneredge)) {
-			p.border.x=p.border.x*real_t(1.01)+dist(re);
-			p.border.y=p.border.y*real_t(1.01)+dist(re);
+			p.border.x=p.border.x*real_t(1.01)/*+dist(re)*/;
+			p.border.y=p.border.y*real_t(1.01)/*+dist(re)*/;
             return true;
 		}
 		if(0<p.flaw_bottom(SIDEDISTANCE)) {
 			p.border.x=p.border.x;
-			p.border.y=p.border.y+real_t(1)+dist(re);
+			p.border.y=p.border.y+real_t(0.1)/*+dist(re)*/;
             return true;
 		}
 		if(0<p.flaw_side(SIDEDISTANCE)) {
-			p.border.x=p.border.x+real_t(1)+dist(re);
+			p.border.x=p.border.x+real_t(0.1)/*+dist(re)*/;
 			p.border.y=p.border.y;
             return true;
 		}
 		if(0<flaw_overlay(p)) {
 			auto cp=nearest_part(p);
 			auto d=cp->border.center()-p.border.center();
-			cp->border+=(d*real_t(0.05));
-			p.border-=(d*real_t(0.5));
+			cp->border+=(d*real_t(0.05)*p.border.r);
+			p.border-=(d*real_t(0.05)*p.border.r);
 			limit_to<real_t>(cp->border.x,0,+WORLD_SIZE);
 			limit_to<real_t>(cp->border.y,0,+WORLD_SIZE);
 			limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
@@ -182,6 +214,27 @@ template<typename T> struct board {
 //				limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
 //				limit_to<real_t>(p.border.y,0,+WORLD_SIZE);
 //			}
+			return true;
+		}
+		if(0<flaw_range(p)) {
+			vector<real_t> pwrs(targets.size(),0);
+			for(auto& q:parts) {
+				if(q.border.r==p.border.r) {
+					for(size_t t=0;t<targets.size();t++) {
+						auto d=p.border.center() - targets[t].center();
+						pwrs[t]+=p.rng/sqr(d.length());
+					}
+				}
+			}
+			size_t g=0;
+			for(size_t n=0;n<pwrs.size();n++) {
+				if(pwrs[n]<pwrs[g]) g=n;
+			}
+			auto d=targets[g].center() - p.border.center();
+			d.normalize();
+			p.border+=(d*real_t(0.25)*p.border.r);
+			limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
+			limit_to<real_t>(p.border.y,0,+WORLD_SIZE);
 			return true;
 		}
 		return false;
@@ -223,11 +276,10 @@ template<typename T> struct board {
 	size_t run_steps(const size_t stp=1000,const size_t pinc=10000) {
 		cout << "running " << stp << " more steps" << endl;
 		flaws_t fl;
-		for(size_t n=0;n<stp;n++) {
-			one_step(fl);
-		}
-		cout << "all steps consumed" << endl;
-		return stp;
+		size_t s=stp;
+		while(s && one_step(fl)) s--;
+		cout << "all steps consumed or target reached" << endl;
+		return stp-s;
 	}
 };
 

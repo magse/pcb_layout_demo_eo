@@ -17,13 +17,13 @@
 #define RANDOMENGINE std::default_random_engine
 #define CSV ","
 
-#define OUTEREDGERADIUS 100.0
+#define OUTEREDGERADIUS 90.0
 #define INNEREDGERADIUS 20.0
 #define SIDEDISTANCE 1.0
 
 #define CHANNEL_DISTANCE 4.5
 #define TARGET_RADIUS 0.9
-#define WORLD_SIZE 200.0
+#define WORLD_SIZE 100.0
 
 #define DRIVER_SIZE 14.0
 #define RESISTOR_SIZE 1.2
