@@ -8,6 +8,8 @@
 #include <iostream>
 #include <unistd.h>
 
+#include <cstring>
+
 #include "board.hpp"
 
 using namespace geometry2d;
