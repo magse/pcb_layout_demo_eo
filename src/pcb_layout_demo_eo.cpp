@@ -28,7 +28,7 @@ int version(const int ret,ostream& f=cout) {
 
 int main(int argc, const char * argv[]) {
 		
-	size_t testnr=0;
+	size_t testnr=1;
 	size_t steps=10000;
 	int a=1;
 	do {
@@ -59,6 +59,7 @@ int main(int argc, const char * argv[]) {
 	}
 	
 	if(1==testnr) {
+		cout << "Running test 1" << endl;
 		board_t* brd=nullptr;
 		brd=new board_t;
 		brd->add_parts(pcbeo::LED3,6);
@@ -67,12 +68,10 @@ int main(int argc, const char * argv[]) {
 		brd->add_parts(pcbeo::LEDX,1);
 		bool res=true;
 		do {
+			cout << brd->parts.size() << " parts" << endl;
 			res=false;
 			brd->balance_parts();
-			if(steps==brd->run_steps(steps)) {
-				delete brd;
-				return 0;
-			}
+			if(steps==brd->run_steps(steps)) break;
 			res=true;
 			auto oldbrd=brd;
 			sleep(2);
@@ -83,7 +82,12 @@ int main(int argc, const char * argv[]) {
 			brd->add_parts(pcbeo::LED8,2);
 			brd->add_parts(pcbeo::LEDX,1);
 			delete oldbrd;
+			if(brd->parts.size()>300) {
+				cout << "max parts reached" << endl;
+				break;
+			}
 		} while(res);
+		delete brd;
 	}
 	
 	return 0;

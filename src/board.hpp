@@ -75,7 +75,7 @@ template<typename T> struct board {
 	}
 	size_t copy_from(board& brd) {
 		parts.clear();
-		copy(begin(parts),end(parts),back_inserter(brd.parts));
+		copy(begin(brd.parts),end(brd.parts),back_inserter(parts));
 		sort_radius();
 		return size();
 	}
