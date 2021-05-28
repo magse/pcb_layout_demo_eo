@@ -13,5 +13,5 @@ distclean : clean
 
 
 install : pcb_layout_demo_eo
-	make -p ${HOME}/bin
+	mkdir -p ${HOME}/bin
 	install -c pcb_layout_demo_eo ${HOME}/bin 
