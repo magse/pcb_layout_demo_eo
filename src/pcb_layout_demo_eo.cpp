@@ -28,7 +28,7 @@ int version(const int ret,ostream& f=cout) {
 
 int main(int argc, const char * argv[]) {
 		
-	size_t testnr=1;
+	size_t testnr=0;
 	size_t steps=10000;
 	int a=1;
 	do {

@@ -23,8 +23,9 @@ template<typename T> struct board {
 	board() {
 		uint64_t sd=chrono::system_clock::now().time_since_epoch().count();
 		re.seed(static_cast<default_random_engine::result_type>(sd));
+		uniform_int_distribution<uint32_t> dist(1,1000000000);
 		ostringstream fn;
-		fn << "BRD" << setfill('0') << setw(8) << sd << ".csv";
+		fn << "BRD" << setfill('0') << setw(18) << sd << "R" <<  setfill('0') << setw(10) << dist(re) << ".csv";
 		cout << fn.str() << endl;
 		resfile.open(fn.str());
 //		for(int i=0;i<6;i++) {
