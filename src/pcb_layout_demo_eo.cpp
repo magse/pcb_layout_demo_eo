@@ -15,8 +15,8 @@
 using namespace geometry2d;
 using namespace std;
 
-string job_prefix(const uint32_t cnt=0,const char* tag=nullptr,uint32_t jobnr=0) {
-	uint64_t sd=chrono::system_clock::now().time_since_epoch().count();
+string job_prefix(uint64_t& sd,const uint32_t cnt=0,const char* tag=nullptr,uint32_t jobnr=0) {
+	if(!sd) sd=chrono::system_clock::now().time_since_epoch().count();
 	ostringstream fn;
 	if(tag) fn << tag << "_";
 	if(jobnr) fn << "J" << setfill('0') << setw(11) << jobnr << "_";
@@ -37,7 +37,9 @@ int version(const int ret,ostream& f=cout) {
 }
 
 int main(int argc, const char * argv[]) {
-		
+	
+	uint64_t sd=0;
+	
 	size_t testnr=0;
 	size_t steps=10000;
 	uint32_t jobnumber=0;
@@ -69,7 +71,7 @@ int main(int argc, const char * argv[]) {
 	typedef pcbeo::board<real_t> board_t;
 
 	if(0==testnr) {
-		auto prefix=job_prefix(0,"BRD",jobnumber);
+		auto prefix=job_prefix(sd,0,"BRD",jobnumber);
 		board_t brd(prefix);
 		brd.configuration_default();
 		brd.run_steps(steps);
@@ -79,7 +81,7 @@ int main(int argc, const char * argv[]) {
 		cout << "Running test 1" << endl;
 		board_t* brd=nullptr;
 		uint32_t cnt=0;
-		auto prefix=job_prefix(cnt++,"PCBEO",jobnumber);
+		auto prefix=job_prefix(sd,cnt++,"PCBEO",jobnumber);
 		brd=new board_t(prefix);
 		uint32_t n3=1;
 		uint32_t n5=1;
@@ -100,7 +102,7 @@ int main(int argc, const char * argv[]) {
 			if(steps==brd->run_steps(steps)) break;
 			res=true;
 			auto oldbrd=brd;
-			prefix=job_prefix(cnt++,"PCBEO",jobnumber);
+			prefix=job_prefix(sd,cnt++,"PCBEO",jobnumber);
 			brd=new board_t(prefix);
 			brd->copy_from(*oldbrd);
 			delete oldbrd;
