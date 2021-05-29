@@ -40,4 +40,5 @@ BRD*.txt
 BRD*.csv
 BRD*.mov
 BRD*.pdf
+*.csv.gz
 

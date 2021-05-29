@@ -2,6 +2,8 @@
 
 #include "part.hpp"
 
+#include <cstdlib>
+
 namespace pcbeo {
 
 template<typename T> struct board {
@@ -20,6 +22,7 @@ template<typename T> struct board {
 	size_t filecounter=0;
 	targets_t targets;
 	ofstream resfile;
+	string filename;
 	board(std::string& prefix) {
 		uint64_t sd=chrono::system_clock::now().time_since_epoch().count();
 		re.seed(static_cast<default_random_engine::result_type>(sd));
@@ -27,6 +30,7 @@ template<typename T> struct board {
 		ostringstream fn;
 		fn << prefix << ".csv";
 		cout << fn.str() << endl;
+		filename=fn.str();
 		resfile.open(fn.str());
 		circle_t c(0,0,TARGET_RADIUS);
 		c=vec2<real_t>(T(0.5)*CHANNEL_DISTANCE,0);
@@ -44,6 +48,9 @@ template<typename T> struct board {
 	}
 	~board() {
 		if(resfile.is_open()) resfile.close();
+		ostringstream cmd;
+		cmd << "gzip -9 " << filename;
+		std::system(cmd.str().c_str());
 	}
 	size_t size() {return parts.size();}
 	void balance_parts() {
@@ -236,16 +243,21 @@ template<typename T> struct board {
 		}
 		return false;
 	}
-	void save_state() {
+	void save_state(real_t F,size_t i,size_t w) {
 		for(auto& p:parts) {
 			assert(!isnan(p.border.x)&&!isinf(p.border.x));
 			assert(!isnan(p.border.y)&&!isinf(p.border.y));
 		}
-		for(auto& p:parts) {
-			resfile << CSV << p.border.x << CSV << p.border.y << CSV << p.border.r;
-		}
+		resfile << w << CSV << F << CSV << i;
+		resfile << CSV << parts[w].border.x << CSV << parts[w].border.y << CSV << parts[w].border.r;
+//		for(auto& p:parts) {
+//			resfile << CSV << p.border.x << CSV << p.border.y << CSV << p.border.r;
+//		}
 		resfile << endl;
         filecounter++;
+	}
+	void save_all_states() {
+		for(size_t w=0;w<parts.size();w++) save_state(-1,0,w);
 	}
 	size_t select_worst(flaws_t& flaws,const real_t lambda,size_t& n) {
 //		size_t fs=min<size_t>(5,flaws.size());
@@ -265,12 +277,12 @@ template<typename T> struct board {
 		size_t i=0;
 		size_t w=select_worst(fl,real_t(0.05),i);
 		bool res=improve(parts[w]);
-		resfile << w << CSV << F << CSV << i;
-		save_state();
+		save_state(F,i,w);
 		return res;
 	}
 	size_t run_steps(const size_t stp=1000) {
 		cout << "running " << stp << " more steps" << endl;
+		save_all_states();
 		flaws_t fl;
 		size_t s=stp;
 		while(s && one_step(fl)) s--;
