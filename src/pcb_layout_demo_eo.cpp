@@ -15,6 +15,17 @@
 using namespace geometry2d;
 using namespace std;
 
+string job_prefix(const uint32_t cnt=0,const char* tag=nullptr,uint32_t jobnr=0) {
+	uint64_t sd=chrono::system_clock::now().time_since_epoch().count();
+	ostringstream fn;
+	if(tag) fn << tag << "_";
+	if(jobnr) fn << "J" << setfill('0') << setw(11) << jobnr << "_";
+	fn << "T" << setfill('0') << setw(18) << sd << "_";
+	fn << setfill('0') << setw(9) << cnt;
+	string p=fn.str();
+	return p;
+}
+
 int help(const int ret,ostream& f=cout) {
 	f << "no help yet" << endl;
 	return ret;
@@ -25,11 +36,12 @@ int version(const int ret,ostream& f=cout) {
 	return ret;
 }
 
-
 int main(int argc, const char * argv[]) {
 		
 	size_t testnr=0;
 	size_t steps=10000;
+	uint32_t jobnumber=0;
+	
 	int a=1;
 	do {
 		if(a<argc && (0==strcmp(argv[a],"-T") || 0==strcmp(argv[a],"--testnr"))) {
@@ -39,6 +51,10 @@ int main(int argc, const char * argv[]) {
 		if(a<argc && (0==strcmp(argv[a],"-N") || 0==strcmp(argv[a],"--steps"))) {
 			a++;
 			if(a<argc) steps=atoll(argv[a]);
+		}
+		if(a<argc && (0==strcmp(argv[a],"-j") || 0==strcmp(argv[a],"--jobnumber"))) {
+			a++;
+			if(a<argc) jobnumber=static_cast<uint32_t>(atoll(argv[a]));
 		}
 		if(a<argc && (0==strcmp(argv[a],"-h") || 0==strcmp(argv[a],"--help"))) {
 			return help(0);
@@ -53,7 +69,8 @@ int main(int argc, const char * argv[]) {
 	typedef pcbeo::board<real_t> board_t;
 
 	if(0==testnr) {
-		board_t brd;
+		auto prefix=job_prefix(0,"BRD",jobnumber);
+		board_t brd(prefix);
 		brd.configuration_default();
 		brd.run_steps(steps);
 	}
@@ -61,26 +78,31 @@ int main(int argc, const char * argv[]) {
 	if(1==testnr) {
 		cout << "Running test 1" << endl;
 		board_t* brd=nullptr;
-		brd=new board_t;
-		brd->add_parts(pcbeo::LED3,6);
-		brd->add_parts(pcbeo::LED5,3);
-		brd->add_parts(pcbeo::LED8,2);
-		brd->add_parts(pcbeo::LEDX,1);
+		uint32_t cnt=0;
+		auto prefix=job_prefix(cnt++,"PCBEO",jobnumber);
+		brd=new board_t(prefix);
+		uint32_t n3=1;
+		uint32_t n5=1;
+		uint32_t n8=1;
+		uint32_t nX=1;
 		bool res=true;
 		do {
+			if(!(--n3)) brd->add_part(pcbeo::LED3);
+			if(!(--n5)) brd->add_part(pcbeo::LED5);
+			if(!(--n8)) brd->add_part(pcbeo::LED8);
+			if(!(--nX)) brd->add_part(pcbeo::LEDX);
+			if(!n3) n3=1;
+			if(!n5) n5=3;
+			if(!n8) n8=5;
+			if(!nX) nX=12;
 			cout << brd->parts.size() << " parts" << endl;
 			res=false;
-			brd->balance_parts();
 			if(steps==brd->run_steps(steps)) break;
 			res=true;
 			auto oldbrd=brd;
-			sleep(2);
-			brd=new board_t;
+			prefix=job_prefix(cnt++,"PCBEO",jobnumber);
+			brd=new board_t(prefix);
 			brd->copy_from(*oldbrd);
-			brd->add_parts(pcbeo::LED3,6);
-			brd->add_parts(pcbeo::LED5,3);
-			brd->add_parts(pcbeo::LED8,2);
-			brd->add_parts(pcbeo::LEDX,1);
 			delete oldbrd;
 			if(brd->parts.size()>300) {
 				cout << "max parts reached" << endl;

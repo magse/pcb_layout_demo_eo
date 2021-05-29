@@ -20,19 +20,14 @@ template<typename T> struct board {
 	size_t filecounter=0;
 	targets_t targets;
 	ofstream resfile;
-	board() {
+	board(std::string& prefix) {
 		uint64_t sd=chrono::system_clock::now().time_since_epoch().count();
 		re.seed(static_cast<default_random_engine::result_type>(sd));
 		uniform_int_distribution<uint32_t> dist(1,1000000000);
 		ostringstream fn;
-		fn << "BRD" << setfill('0') << setw(18) << sd << "R" <<  setfill('0') << setw(10) << dist(re) << ".csv";
+		fn << prefix << ".csv";
 		cout << fn.str() << endl;
 		resfile.open(fn.str());
-//		for(int i=0;i<6;i++) {
-//			T z=T(-2.5)*T(CHANNEL_DISTANCE)+i*T(CHANNEL_DISTANCE);
-//			circle_t c1(z,T(0),T(TARGET_RADIUS));
-//			targets.push_back(c1);
-//		}
 		circle_t c(0,0,TARGET_RADIUS);
 		c=vec2<real_t>(T(0.5)*CHANNEL_DISTANCE,0);
 		targets.push_back(c);

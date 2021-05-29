@@ -9,6 +9,7 @@
 #include <chrono>
 #include <cmath>
 #include <cassert>
+#include <string>
 #include <memory>
 #include <algorithm>
 #include <initializer_list>
