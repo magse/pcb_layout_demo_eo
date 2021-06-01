@@ -59,6 +59,7 @@ template<typename T> struct board {
 		size_t nDrivers=nLEDS/8+1;
 		for(auto& p:parts) if(DRIVER==p.typ) nDrivers--;
 		add_parts(DRIVER,nDrivers);
+		// TODO: Resistors disabled for now
 //		size_t nResistors=nLEDS;
 //		for(auto& p:parts) if(RESISTOR==p.typ) nResistors--;
 //		add_parts(RESISTOR,nResistors);
@@ -103,13 +104,6 @@ template<typename T> struct board {
 		return cp;
 	}
 	real_t flaw_overlay(part_t& p) {
-//		real_t A=0;
-//		for(auto& q:parts) {
-//			if(&p!=&q) {
-//				A+=p.border.intersection_area(q.border);
-//			}
-//		}
-//		real_t f=A/p.border.area();
 		auto cp=nearest_part(p);
 		auto d=cp->border.center()-p.border.center();
 		return abs(d.length()/(cp->border.r+p.border.r));
@@ -177,6 +171,7 @@ template<typename T> struct board {
             return true;
 		}
 		if(0<flaw_overlay(p)) {
+			// This flaw differs from the ones above in that the other parts have to move when this part scores a flaw.
 			auto cp=nearest_part(p);
 			auto d=cp->border.center()-p.border.center();
 			cp->border+=(d*real_t(0.05)*p.border.r);
@@ -185,39 +180,6 @@ template<typename T> struct board {
 			limit_to<real_t>(cp->border.y,0,+WORLD_SIZE);
 			limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
 			limit_to<real_t>(p.border.y,0,+WORLD_SIZE);
-//			// This flaw differs from the ones above in that the other parts have to move when this part scores a flaw.
-//			real_t A=0;
-//			vector<real_t> pA(parts.size(),0);
-//			size_t n=0;
-//			for_each(begin(parts),end(parts),[&p,&A,&n,&pA](auto& q){
-//				if(&p!=&q) {
-//					pA[n]=p.border.intersection_area(q.border);
-//					A+=pA[n];
-//					n++;
-//				}
-//			});
-//			if(0==A) {
-//				p.border.x+=real_t(0.1)*dist(re);
-//				p.border.y+=real_t(0.1)*dist(re);
-//				limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
-//				limit_to<real_t>(p.border.y,0,+WORLD_SIZE);
-//				return true;
-//			}
-//			for(auto& a:pA) a=a/(A+p.border.area())*real_t(1)*p.border.r;
-//			for(n=0;n<parts.size();n++) {
-//				assert(!isnan(pA[n])&&!isinf(pA[n]));
-//				vec2<real_t> d=parts[n].border.center()-p.border.center(); // Direction away from part p
-//				d*=pA[n];
-//				d+=(vec2<real_t>(dist(re),dist(re))*real_t(0.1));
-//				assert(!isnan(d.x)&&!isinf(d.x));
-//				assert(!isnan(d.y)&&!isinf(d.y));
-//				parts[n].border+=d;
-////				p.border-=d;
-//				limit_to<real_t>(parts[n].border.x,0,+WORLD_SIZE);
-//				limit_to<real_t>(parts[n].border.y,0,+WORLD_SIZE);
-//				limit_to<real_t>(p.border.x,0,+WORLD_SIZE);
-//				limit_to<real_t>(p.border.y,0,+WORLD_SIZE);
-//			}
 			return true;
 		}
 		if(0<flaw_range(p)) {
@@ -250,9 +212,6 @@ template<typename T> struct board {
 		}
 		resfile << w << CSV << F << CSV << i;
 		resfile << CSV << parts[w].border.x << CSV << parts[w].border.y << CSV << parts[w].border.r;
-//		for(auto& p:parts) {
-//			resfile << CSV << p.border.x << CSV << p.border.y << CSV << p.border.r;
-//		}
 		resfile << endl;
         filecounter++;
 	}
@@ -260,8 +219,6 @@ template<typename T> struct board {
 		for(size_t w=0;w<parts.size();w++) save_state(-1,0,w);
 	}
 	size_t select_worst(flaws_t& flaws,const real_t lambda,size_t& n) {
-//		size_t fs=min<size_t>(5,flaws.size());
-//		n=random_exp(re,fs,lambda);
 		n=0;
 		uniform_real_distribution<real_t> dist(0,1);
 		if(dist(re)<0.05) n++;
